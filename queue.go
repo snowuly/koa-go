@@ -3,27 +3,27 @@ package koa
 import "context"
 
 type Queue struct {
-	List []func(context.Context, func())
+	list []handler
 }
 
-func (q *Queue) Add(fn func(context.Context, func())) {
-	q.List = append(q.List, fn)
+type handler func(context.Context, func(context.Context))
+
+func (q *Queue) Add(fn handler) {
+	q.list = append(q.list, fn)
 }
 
-func (q *Queue) genNext(ctx context.Context, index int) func() {
-	if index >= len(q.List) {
-		return empty
+func (q *Queue) genNext(index int) func(context.Context) {
+	if index >= len(q.list) {
+		return nil
 	}
-	return func() {
-		q.List[index](ctx, q.genNext(ctx, index+1))
+	return func(ctx context.Context) {
+		q.list[index](ctx, q.genNext(index+1))
 	}
 }
 
 func (q *Queue) Run(ctx context.Context) {
-	if len(q.List) > 0 {
-		q.List[0](ctx, q.genNext(ctx, 1))
+	if len(q.list) > 0 {
+		q.list[0](ctx, q.genNext(1))
 	}
 
 }
-
-func empty() {}

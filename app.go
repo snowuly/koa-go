@@ -9,25 +9,35 @@ const (
 	wrkey = key(iota)
 )
 
+type Handler func(context.Context, http.ResponseWriter, *http.Request, func(context.Context))
+
 type wr struct {
 	w http.ResponseWriter
 	r *http.Request
 }
 
-type App struct {
+type List struct {
 	Queue
 }
 
-func NewApp() *App {
-	var q Queue
-	return &App{q}
-}
-
-func (app *App) Use(fn func(context.Context, http.ResponseWriter, *http.Request, func())) {
-	app.Add(func(ctx context.Context, next func()) {
+func (list *List) Add(fn Handler) {
+	list.Queue.Add(func(ctx context.Context, next func(context.Context)) {
 		wr := ctx.Value(wrkey).(*wr)
 		fn(ctx, wr.w, wr.r, next)
 	})
+}
+
+type App struct {
+	List
+}
+
+func NewApp() *App {
+	var list List
+	return &App{list}
+}
+
+func (app *App) Use(fn Handler) {
+	app.Add(fn)
 }
 
 func (app *App) Listen(addr string) {
