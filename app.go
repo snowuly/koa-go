@@ -15,7 +15,7 @@ type wr struct {
 }
 
 type App struct {
-	queue Queue
+	Queue
 }
 
 func NewApp() *App {
@@ -24,7 +24,7 @@ func NewApp() *App {
 }
 
 func (app *App) Use(fn func(context.Context, http.ResponseWriter, *http.Request, func())) {
-	app.queue.Add(func(ctx context.Context, next func()) {
+	app.Add(func(ctx context.Context, next func()) {
 		wr := ctx.Value(wrkey).(*wr)
 		fn(ctx, wr.w, wr.r, next)
 	})
@@ -34,7 +34,7 @@ func (app *App) Listen(addr string) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		ctx := context.WithValue(context.Background(), wrkey, &wr{w, r})
-		app.queue.Run(ctx)
+		app.Run(ctx)
 	})
 	http.ListenAndServe(addr, mux)
 }
