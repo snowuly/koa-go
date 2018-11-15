@@ -40,10 +40,14 @@ func (app *App) Use(fn Handler) {
 	app.Add(fn)
 }
 
-func (app *App) Listen(addr string) {
+func (app *App) Listen(addr string, ctx context.Context) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.WithValue(context.Background(), wrkey, &wr{w, r})
+		ctx := context.WithValue(ctx, wrkey, &wr{w, r})
 		app.Run(ctx)
 	})
 	http.ListenAndServe(addr, mux)

@@ -20,5 +20,5 @@ func main() {
 	app.Use(func(ctx context.Context, w http.ResponseWriter, r *http.Request, next func(context.Context)) {
 		w.Write([]byte("middel\n"))
 	})
-	app.Listen(":8080")
+	app.Listen(":8080", nil)
 }
