@@ -16,28 +16,20 @@ type wr struct {
 	r *http.Request
 }
 
-type List struct {
-	Queue
-}
-
-func (list *List) Add(fn Handler) {
-	list.Queue.Add(func(ctx context.Context, next func(context.Context)) {
+func (app *App) Use(fn Handler) {
+	app.Add(func(ctx context.Context, next func(context.Context)) {
 		wr := ctx.Value(wrkey).(*wr)
 		fn(ctx, wr.w, wr.r, next)
 	})
 }
 
 type App struct {
-	List
+	Queue
 }
 
 func NewApp() *App {
-	var list List
-	return &App{list}
-}
-
-func (app *App) Use(fn Handler) {
-	app.Add(fn)
+	var queue Queue
+	return &App{queue}
 }
 
 func (app *App) Listen(addr string, ctx context.Context) {
